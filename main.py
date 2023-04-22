@@ -6,21 +6,18 @@ from kivy.graphics.texture import Texture
 import cv2
 import mediapipe as mp
 from kivy.uix.camera import Camera
-import numpy as np
 
-mp_drawing_styles = mp.solutions.drawing_styles
+mp_drawing = mp.solutions.drawing_utils
 mp_holistic = mp.solutions.holistic
-mp_holistic = mp.solutions.holistic
-
-
 
 class CamApp(App):
 
     def build(self):
-
+        
         self.holistic = mp_holistic.Holistic(
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5)
+            min_detection_confidence=0.7,
+            min_tracking_confidence=0.7)
+
         self.img1 = Image()
         layout = BoxLayout()
         layout.add_widget(self.img1)
@@ -35,12 +32,18 @@ class CamApp(App):
         ret, image = cap.read()
         # pass by reference.
 
-        image.flags.writeable = False
+        # image.flags.writeable = False
         # Draw landmark annotation on the image.
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
         results = holistic.process(image)
-        print(results)
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+        mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS)
+        mp_drawing.draw_landmarks(image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
+        mp_drawing.draw_landmarks(image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
+
+        cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         buf1 = cv2.flip(image, 0)
         buf = buf1.tostring()
